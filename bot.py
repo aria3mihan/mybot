@@ -1,7 +1,7 @@
 
 import telebot
 import os
-
+# update
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_1 = os.getenv("CHANNEL_1")   # کانال خودت
 CHANNEL_2 = os.getenv("CHANNEL_2")   # کانال دوم
