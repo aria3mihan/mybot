@@ -32,3 +32,4 @@ def download(message):
         return
 
     bot.send_message(user_id, "عضویت تایید شد ❤️\nاینم لینک دانلودت:\nhttps://example.com/file.mp4")
+bot.polling(none_stop=True)
