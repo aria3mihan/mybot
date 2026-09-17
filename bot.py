@@ -17,7 +17,12 @@ def is_member(channel, user_id):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "برای دانلود باید عضو هر دو کانال باشی ❤️")
+    bot.reply_to(
+        message,
+        "برای دانلود باید عضو هر دو کانال باشی:\n\n"
+        "کانال اول: https://t.me/negahemanadar2"
+        "کانال دوم: https://t.me/seriyalbazi2"
+    )
 
 @bot.message_handler(commands=['download'])
 def download(message):
