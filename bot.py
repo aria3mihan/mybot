@@ -1,35 +1,34 @@
+
 import telebot
 import os
 
 TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME")  # مثلا @mychannel
+CHANNEL_1 = os.getenv("CHANNEL_1")   # کانال خودت
+CHANNEL_2 = os.getenv("CHANNEL_2")   # کانال دوم
 
 bot = telebot.TeleBot(TOKEN)
 
-def is_member(user_id):
+def is_member(channel, user_id):
     try:
-        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        member = bot.get_chat_member(channel, user_id)
         return member.status in ["member", "administrator", "creator"]
     except Exception:
         return False
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "سلام 😊 برای دانلود باید عضو کانال باشی.")
+    bot.reply_to(message, "برای دانلود باید عضو هر دو کانال باشی ❤️")
 
 @bot.message_handler(commands=['download'])
-def download_file(message):
+def download(message):
     user_id = message.from_user.id
 
-    if not is_member(user_id):
-        bot.send_message(
-            user_id,
-            f"برای دانلود باید عضو کانال بشی:\n{CHANNEL_USERNAME}\nبعد از عضویت دوباره /download رو بزن."
-        )
+    if not is_member(CHANNEL_1, user_id):
+        bot.send_message(user_id, f"اول عضو کانال خودم شو:\n{CHANNEL_1}")
         return
 
-    bot.send_message(user_id, "عضوی! الان می‌تونی دانلود کنی 😊")
-    # اینجا فایل واقعی رو می‌فرستی
-    # bot.send_document(user_id, open("file.mp4", "rb"))
+    if not is_member(CHANNEL_2, user_id):
+        bot.send_message(user_id, f"حالا عضو کانال دوم شو:\n{CHANNEL_2}")
+        return
 
-bot.infinity_polling()
+    bot.send_message(user_id, "عضویت تایید شد ❤️\nاینم لینک دانلودت:\nhttps://example.com/file.mp4")
