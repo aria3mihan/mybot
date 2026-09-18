@@ -1,11 +1,17 @@
-import telebot
 
-BOT_TOKEN = "7437089012:AAH3q0eJ2m5z8Yb8v6t8u5rYfR0lF8p0Fqk"
+import telebot
+from telebot import types
+import os
+
+# گرفتن توکن از متغیرهای Railway
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
 CHANNEL_1 = -10097246777        # negahemanadar2
 CHANNEL_2 = -1002455669969      # seriyalbazi2
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
+# چک کردن عضویت کاربر در هر دو کانال
 def is_member(user_id):
     try:
         m1 = bot.get_chat_member(CHANNEL_1, user_id)
@@ -15,48 +21,65 @@ def is_member(user_id):
     except:
         return False
 
-def download_button(episode):
-    markup = telebot.types.InlineKeyboardMarkup()
-    btn = telebot.types.InlineKeyboardButton(
-        text="برای دانلود کلیک کن",
-        callback_data=f"download_{episode}"
-    )
-    markup.add(btn)
-    return markup
-
-@bot.message_handler(func=lambda m: m.text.startswith("دانلود قسمت"))
-def handle_download_request(message):
-    user_id = message.chat.id
-    episode = message.text.replace("دانلود قسمت ", "").strip()
-
-    # این پیام، هم دکمهٔ شیشه‌ای می‌سازه، هم نقطهٔ شروع کاربره
-    bot.send_message(
-        user_id,
-        f"برای دانلود قسمت {episode} روی دکمه زیر کلیک کن 👇",
-        reply_markup=download_button(episode)
-    )
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("download_"))
-def callback_download(call):
-    user_id = call.message.chat.id
-    episode = call.data.replace("download_", "")
+# هندلر شروع
+@bot.message_handler(commands=['start'])
+def start(message):
+    user_id = message.from_user.id
 
     if not is_member(user_id):
-        bot.send_message(
-            user_id,
-            "برای دانلود باید عضو هر دو کانال باشی ❤️\n\n"
-            "کانال اول:\nhttps://t.me/negahemanadar2\n"
-            "کانال دوم:\nhttps://t.me/seriyalbazi2\n\n"
-            "بعد از عضویت دوباره روی دکمهٔ دانلود بزن 🌿"
-        )
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton("عضویت در کانال ۱", url="https://t.me/negahemanadar2")
+        btn2 = types.InlineKeyboardButton("عضویت در کانال ۲", url="https://t.me/seriyalbazi2")
+        btn3 = types.InlineKeyboardButton("عضویت را چک کن ✔️", callback_data="check")
+        markup.add(btn1)
+        markup.add(btn2)
+        markup.add(btn3)
+
+        bot.reply_to(message, "برای دانلود باید عضو هر دو کانال باشی ❤️", reply_markup=markup)
         return
 
-    download_link = f"https://t.me/negahemanadar2/{episode}"
+    bot.reply_to(message, "سلام عزیزم 😍\nشماره قسمت رو بفرست تا لینک دانلود رو بدم.")
 
-    bot.send_message(
-        user_id,
-        f"عضویت تایید شد ❤️\n\n"
-        f"لینک دانلود قسمت {episode}:\n{download_link}"
-    )
+# چک کردن عضویت با دکمهٔ شیشه‌ای
+@bot.callback_query_handler(func=lambda call: call.data == "check")
+def check_membership(call):
+    user_id = call.from_user.id
 
-bot.infinity_polling()
+    if is_member(user_id):
+        bot.answer_callback_query(call.id, "عضویت تأیید شد ✔️")
+        bot.send_message(user_id, "عالیه 😍\nحالا شماره قسمت رو بفرست.")
+    else:
+        bot.answer_callback_query(call.id, "هنوز عضو نیستی ❌")
+        bot.send_message(user_id, "برای دانلود باید عضو هر دو کانال باشی ❤️")
+
+# هندلر دانلود قسمت‌ها
+@bot.message_handler(func=lambda m: True)
+def download_handler(message):
+    user_id = message.from_user.id
+
+    if not is_member(user_id):
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton("عضویت در کانال ۱", url="https://t.me/negahemanadar2")
+        btn2 = types.InlineKeyboardButton("عضویت در کانال ۲", url="https://t.me/seriyalbazi2")
+        btn3 = types.InlineKeyboardButton("عضویت را چک کن ✔️", callback_data="check")
+        markup.add(btn1)
+        markup.add(btn2)
+        markup.add(btn3)
+
+        bot.reply_to(message, "برای دانلود باید عضو هر دو کانال باشی ❤️", reply_markup=markup)
+        return
+
+    text = message.text.strip()
+
+    if text.startswith("دانلود قسمت"):
+        try:
+            number = text.replace("دانلود قسمت", "").strip()
+            link = f"https://yourserver.com/download/{number}.mp4"
+            bot.reply_to(message, f"لینک دانلود قسمت {number} 👇\n{link}")
+        except:
+            bot.reply_to(message, "شماره قسمت نامعتبره عزیزم ❌")
+    else:
+        bot.reply_to(message, "شماره قسمت رو اینجوری بفرست:\n\nدانلود قسمت ۵۸")
+
+# اجرای ربات
+bot.polling(none_stop=True)
